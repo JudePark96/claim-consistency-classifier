@@ -5,19 +5,17 @@ import math
 import os
 import random
 import sys
-from functools import partial
-
 import numpy as np
 import torch
 import torch.distributed as dist
-import torch.nn as nn
+
+from functools import partial
 from sklearn.metrics import classification_report
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, RandomSampler, DistributedSampler
 from tqdm import tqdm
 from transformers import AutoTokenizer, BertForSequenceClassification, RobertaForSequenceClassification
 from transformers.optimization import get_linear_schedule_with_warmup, AdamW
-
 from dataset.consistency_dataset import ConsistencyDataset
 
 sys.path.append(os.getcwd() + "/../")  # noqa: E402
@@ -43,30 +41,22 @@ def _get_parser():
 
     parser.add_argument("--device_ids", type=str, default="3",
                         help="comma separated list of devices ids in single node")
-
     parser.add_argument("--seed", type=int, default=203)
     parser.add_argument('--hf_model_name', type=str)
-
     parser.add_argument("--save_checkpoints_dir", type=str, default="checkpoints_for_baseline/")
     parser.add_argument("--save_checkpoints_steps", type=int, default=10000)
     parser.add_argument("--log_step_count_steps", type=int, default=10)
-
     parser.add_argument("--num_train_epochs", type=int, default=2)
     parser.add_argument("--per_gpu_train_batch_size", type=int, default=8)
     parser.add_argument("--gradient_accumulation_steps", type=int, default=4)
-
     parser.add_argument("--learning_rate", type=float, default=5e-5)
     parser.add_argument("--warmup_proportion", type=float, default=0.06)
-
     parser.add_argument("--adam_beta1", type=float, default=0.9)
     parser.add_argument("--adam_beta2", type=float, default=0.999)
     parser.add_argument("--adam_epsilon", type=float, default=1e-6)
-
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--max_grad_norm", type=float, default=1.0)
-
     parser.add_argument("--classifier_dropout", type=float, default=0.0)
-
     parser.add_argument("--local_rank", type=int, default=-1, help="local_rank for distributed training on gpus")
     parser.add_argument("--n_gpu", type=int, default=1, help="Number of GPUs in the node.")
 
@@ -112,8 +102,7 @@ def main():
 
     tokenizer = AutoTokenizer.from_pretrained(args.hf_model_name)
 
-    train_dataset, test_dataset = ConsistencyDataset(train_dataset, tokenizer), \
-                                  ConsistencyDataset(test_dataset, tokenizer)
+    train_dataset, test_dataset = ConsistencyDataset(train_dataset, tokenizer), ConsistencyDataset(test_dataset, tokenizer)
 
     train_sampler = RandomSampler(train_dataset) if not args.multi_gpu else DistributedSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset,
@@ -172,6 +161,7 @@ def main():
         print_args(args)
         configuration = vars(args)
         save_configuration_path = os.path.join(args.save_checkpoints_dir, f"configuration.json")
+
         with open(save_configuration_path, "w") as fp:
             json.dump(configuration, fp, indent=2, ensure_ascii=False)
 
@@ -193,15 +183,14 @@ def main():
     for epoch in range(args.num_train_epochs):
         if args.multi_gpu:
             train_sampler.set_epoch(epoch * 1000)
-
         model.train()
-
         iter_loss = 0
 
         iter_bar = tqdm(train_dataloader, desc="Iter", disable=not args.is_master)
         for step, batch in enumerate(iter_bar):
             batch = {k: v.to('cuda') for k, v in batch.items()}
-            output = model(batch['input_ids'], labels=batch['labels'])
+            # output = model(batch['input_ids'], labels=batch['labels'])
+            output = model(**batch)
 
             loss = output['loss']
 

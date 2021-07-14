@@ -45,7 +45,7 @@ class ConsistencyDataset(Dataset, ABC):
     def collate_fn(data: Dict[str, Any], pad_token_id: int) -> Dict[str, torch.Tensor]:
         input_ids = [input['input']['input_ids'] for input in data]
         attn_masks = [input['input']['attention_mask'] for input in data]
-        token_type_ids = [input['input']['token_type_ids'] for input in data]
+        # token_type_ids = [input['input']['token_type_ids'] for input in data]
         labels = [input['label'] for input in data]
 
         input_id_max_len = max([i.shape[1] for i in input_ids])
@@ -54,20 +54,20 @@ class ConsistencyDataset(Dataset, ABC):
                      for input_id in input_ids]
         attn_masks = [torch.cat((attn_mask.squeeze(dim=0), torch.LongTensor([0] * (input_id_max_len - attn_mask.shape[1])))).unsqueeze(dim=0)
                       for attn_mask in attn_masks]
-        token_type_ids = [torch.cat((token_type_id.squeeze(dim=0), torch.LongTensor([0] * (input_id_max_len - token_type_id.shape[1])))).unsqueeze(dim=0)
-                          for token_type_id in token_type_ids]
+        # token_type_ids = [torch.cat((token_type_id.squeeze(dim=0), torch.LongTensor([0] * (input_id_max_len - token_type_id.shape[1])))).unsqueeze(dim=0)
+        #                   for token_type_id in token_type_ids]
 
         input_ids = torch.cat(input_ids, dim=0).long()
         attn_masks = torch.cat(attn_masks, dim=0).long()
-        token_type_ids = torch.cat(token_type_ids, dim=0).long()
+        # token_type_ids = torch.cat(token_type_ids, dim=0).long()
 
         assert input_ids.shape == attn_masks.shape
-        assert input_ids.shape == token_type_ids.shape
+        # assert input_ids.shape == token_type_ids.shape
 
         return {
             'input_ids': input_ids,
             'attention_mask': attn_masks,
-            'token_type_ids': token_type_ids,
+            # 'token_type_ids': token_type_ids,
             'labels': torch.cat(labels, dim=0)
         }
 
