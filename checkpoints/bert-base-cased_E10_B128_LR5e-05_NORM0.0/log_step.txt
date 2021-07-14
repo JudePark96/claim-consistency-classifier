@@ -1,3 +1,0 @@
-epoch=0, global_steps=9, learning_rate=0.0000001200, rolling_loss=1.08303, last_loss=1.05190
-epoch=0, global_steps=19, learning_rate=0.0000002533, rolling_loss=1.08642, last_loss=1.10741
-epoch=0, global_steps=29, learning_rate=0.0000003867, rolling_loss=1.08613, last_loss=1.06612
